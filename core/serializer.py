@@ -39,6 +39,14 @@ class MachineSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class OrderCreateSerializer(ModelSerializer):
+    user = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+
 class OrderSerializer(ModelSerializer):
     class Meta:
         model = Order
@@ -51,7 +59,23 @@ class ProductSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class OrderProductSerializer(ModelSerializer):
+    order = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Product
+        fields = '__all__'
+
+
 class DecorationInspectionSerializer(ModelSerializer):
+    class Meta:
+        model = DecorationInspection
+        fields = '__all__'
+
+
+class ProductDecorationInspectionSerializer(ModelSerializer):
+    product = serializers.PrimaryKeyRelatedField(read_only=True)
+
     class Meta:
         model = DecorationInspection
         fields = '__all__'
@@ -62,7 +86,34 @@ class PackagingInspectionSerializer(ModelSerializer):
         model = PackagingInspection
         fields = '__all__'
 
+
+class ProductPackagingInspectionSerializer(ModelSerializer):
+    product = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = PackagingInspection
+        fields = '__all__'
+
+
 class CandleInspectionSerializer(ModelSerializer):
     class Meta:
         model = CandleInspection
+        fields = '__all__'
+
+
+class ProductCandleInspectionSerializer(ModelSerializer):
+    product = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = CandleInspection
+        fields = '__all__'
+
+
+class ProductDataSerializer(ModelSerializer):
+    product_decoration_inspection = DecorationInspectionSerializer(many=True)
+    product_packaging_inspection = PackagingInspectionSerializer(many=True)
+    product_candle_inspection = CandleInspectionSerializer(many=True)
+
+    class Meta:
+        model = Product
         fields = '__all__'

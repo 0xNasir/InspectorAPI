@@ -46,7 +46,7 @@ class Product(models.Model):
 
 
 class DecorationInspection(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_decoration_inspection')
     decoration_type = models.CharField(max_length=200, choices=(
         ('ser_aspect', 'ser_aspect'), ('ser_printq', 'ser_printq'), ('ser_color', 'ser_color'),
         ('ver_aspect', 'ver_aspect'), ('ver_shine', 'ver_shine'), ('ver_break', 'ver_break'),
@@ -60,9 +60,12 @@ class DecorationInspection(models.Model):
     def __str__(self):
         return self.product.name
 
+    def image_url(self):
+        return self.image.url
+
 
 class PackagingInspection(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_packaging_inspection')
     packaging_type = models.CharField(max_length=200, choices=(
         ('lab_address', 'lab_address'), ('lab_printing', 'lab_printing'), ('lab_dirty', 'lab_dirty'),
         ('lab_position', 'lab_position'), ('fol_correct', 'fol_correct'), ('fol_rugged', 'fol_rugged'),
@@ -78,9 +81,12 @@ class PackagingInspection(models.Model):
     def __str__(self):
         return self.product.name
 
+    def image_url(self):
+        return self.image.url
+
 
 class CandleInspection(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_candle_inspection')
     candle_type = models.CharField(max_length=200, choices=(
         ('mat_rawmaterial', 'mat_rawmaterial'), ('mat_lotmaterial', 'mat_lotmaterial'), ('mat_mix', 'mat_mix'),
         ('mat_lotmix', 'mat_lotmix'), ('mat_powdercolor', 'mat_powdercolor'), ('mat_lotpowder', 'mat_lotpowder'),
@@ -98,3 +104,6 @@ class CandleInspection(models.Model):
 
     def __str__(self):
         return self.product.name
+
+    def image_url(self):
+        return self.image.url

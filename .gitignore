@@ -1,3 +1,4 @@
 core/migrations
 .idea
 db.sqlite3
+inspector/media
