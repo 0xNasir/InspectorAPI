@@ -5,7 +5,8 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from core.models import Machine, Order, Product, DecorationInspection, PackagingInspection, CandleInspection
+from core.models import Machine, Order, Product, DecorationInspection, PackagingInspection, CandleInspection, \
+    CandleInspectionImage, PackagingInspectionImage, DecorationInspectionImage
 
 
 class UserSerializer(serializers.Serializer):
@@ -47,21 +48,21 @@ class OrderCreateSerializer(ModelSerializer):
         fields = '__all__'
 
 
-class OrderSerializer(ModelSerializer):
-    class Meta:
-        model = Order
-        fields = '__all__'
-
-
 class ProductSerializer(ModelSerializer):
     class Meta:
         model = Product
         fields = '__all__'
 
 
-class OrderProductSerializer(ModelSerializer):
-    order = serializers.IntegerField(read_only=True)
+class OrderSerializer(ModelSerializer):
+    products = ProductSerializer(many=True)
 
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+
+class OrderProductSerializer(ModelSerializer):
     class Meta:
         model = Product
         fields = '__all__'
@@ -73,8 +74,15 @@ class DecorationInspectionSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class DecorationInspectionImageSerializer(ModelSerializer):
+    class Meta:
+        model = DecorationInspectionImage
+        fields = ['id', 'image']
+
+
 class ProductDecorationInspectionSerializer(ModelSerializer):
-    product = serializers.PrimaryKeyRelatedField(read_only=True)
+    order = serializers.PrimaryKeyRelatedField(read_only=True)
+    decoration_inspection_image = DecorationInspectionImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = DecorationInspection
@@ -87,8 +95,15 @@ class PackagingInspectionSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class PackagingInspectionImageSerializer(ModelSerializer):
+    class Meta:
+        model = PackagingInspectionImage
+        fields = ['id', 'image']
+
+
 class ProductPackagingInspectionSerializer(ModelSerializer):
-    product = serializers.PrimaryKeyRelatedField(read_only=True)
+    order = serializers.PrimaryKeyRelatedField(read_only=True)
+    packaging_inspection_image = PackagingInspectionImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = PackagingInspection
@@ -101,8 +116,15 @@ class CandleInspectionSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class CandleInspectionImageSerializer(ModelSerializer):
+    class Meta:
+        model = CandleInspectionImage
+        fields = ['id', 'image']
+
+
 class ProductCandleInspectionSerializer(ModelSerializer):
-    product = serializers.PrimaryKeyRelatedField(read_only=True)
+    order = serializers.PrimaryKeyRelatedField(read_only=True)
+    candle_inspection_image = CandleInspectionImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = CandleInspection
@@ -117,3 +139,9 @@ class ProductDataSerializer(ModelSerializer):
     class Meta:
         model = Product
         fields = '__all__'
+
+
+class OrderedProductSerializer(ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['products']

@@ -10,7 +10,8 @@ from core.models import Machine, Order, Product, DecorationInspection, Packaging
 from core.serializer import UserSerializer, JWTObtainPairSerializer, MachineSerializer, OrderSerializer, \
     ProductSerializer, DecorationInspectionSerializer, PackagingInspectionSerializer, CandleInspectionSerializer, \
     OrderCreateSerializer, OrderProductSerializer, ProductDecorationInspectionSerializer, \
-    ProductPackagingInspectionSerializer, ProductCandleInspectionSerializer, ProductDataSerializer
+    ProductPackagingInspectionSerializer, ProductCandleInspectionSerializer, ProductDataSerializer, \
+    OrderedProductSerializer
 
 
 class RegisterAPIView(viewsets.GenericViewSet,
@@ -57,8 +58,16 @@ class OrderAPIView(viewsets.GenericViewSet,
     def get_serializer_class(self):
         if self.action in ['create', 'update']:
             return OrderCreateSerializer
-        if self.action in ['product']:
+        if self.action in ['products']:
             return OrderProductSerializer
+        if self.action in ['product']:
+            return OrderedProductSerializer
+        if self.action == 'decoration_inspection':
+            return ProductDecorationInspectionSerializer
+        if self.action == 'packaging_inspection':
+            return ProductPackagingInspectionSerializer
+        if self.action == 'candle_inspection':
+            return ProductCandleInspectionSerializer
         else:
             return OrderSerializer
 
@@ -74,80 +83,85 @@ class OrderAPIView(viewsets.GenericViewSet,
         order.save()
         return Response(OrderSerializer(order, many=False).data, status=status.HTTP_201_CREATED)
 
-    @action(methods=['GET', 'POST'], detail=True)
+    @action(methods=['GET'], detail=True)
+    def products(self, request, pk):
+        order = self.get_object()
+        return Response(ProductSerializer(order.products, many=True).data)
+
+    @action(methods=['DELETE'], detail=True, url_path=r'product/(?P<product_id>\w+)', )
+    def delete_product(self, request, pk, product_id):
+        order = self.get_object()
+        try:
+            product = Product.objects.get(id=product_id)
+            order.products.remove(product)
+        except:
+            pass
+        order.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(methods=['POST'], detail=True)
     def product(self, request, pk):
-        if request.method == 'GET':
-            order = self.get_object()
-            products = Product.objects.filter(order=order)
-            return Response(ProductSerializer(products, many=True).data)
-        else:
-            request.data['order'] = self.get_object().id
-            serializer = ProductSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status.HTTP_201_CREATED)
-
-
-class ProductAPIView(viewsets.GenericViewSet,
-                     # mixins.ListModelMixin,
-                     # mixins.CreateModelMixin,
-                     mixins.UpdateModelMixin,
-                     mixins.RetrieveModelMixin,
-                     mixins.DestroyModelMixin):
-    queryset = Product.objects.all()
-
-    parser_classes = [MultiPartParser]
-
-    def get_serializer_class(self):
-        if self.action == 'decoration_inspection':
-            return ProductDecorationInspectionSerializer
-        if self.action == 'packaging_inspection':
-            return ProductPackagingInspectionSerializer
-        if self.action == 'candle_inspection':
-            return ProductCandleInspectionSerializer
-        if self.action == 'retrieve':
-            return ProductDataSerializer
-        else:
-            return ProductSerializer
+        order = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        for i in serializer.validated_data['products']:
+            order.products.add(i)
+        order.save()
+        return Response(ProductSerializer(order.products, many=True).data, status.HTTP_201_CREATED)
 
     @action(methods=['GET', 'POST'], detail=True)
     def decoration_inspection(self, request, pk):
         if request.method == 'GET':
-            product = self.get_object()
-            di = DecorationInspection.objects.filter(product=product)
+            order = self.get_object()
+            di = DecorationInspection.objects.filter(order=order)
             return Response(self.get_serializer(di, many=True).data)
         else:
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            serializer.validated_data['product'] = self.get_object()
+            serializer.validated_data['order'] = self.get_object()
             serializer.save()
             return Response(serializer.data, status.HTTP_201_CREATED)
 
     @action(methods=['GET', 'POST'], detail=True)
     def packaging_inspection(self, request, pk):
         if request.method == 'GET':
-            product = self.get_object()
-            di = PackagingInspection.objects.filter(product=product)
+            order = self.get_object()
+            di = PackagingInspection.objects.filter(order=order)
             return Response(self.get_serializer(di, many=True).data)
         else:
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            serializer.validated_data['product'] = self.get_object()
+            serializer.validated_data['order'] = self.get_object()
             serializer.save()
             return Response(serializer.data, status.HTTP_201_CREATED)
 
     @action(methods=['GET', 'POST'], detail=True)
     def candle_inspection(self, request, pk):
         if request.method == 'GET':
-            product = self.get_object()
-            di = CandleInspection.objects.filter(product=product)
+            order = self.get_object()
+            di = CandleInspection.objects.filter(order=order)
             return Response(self.get_serializer(di, many=True).data)
         else:
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            serializer.validated_data['product'] = self.get_object()
+            serializer.validated_data['order'] = self.get_object()
             serializer.save()
             return Response(serializer.data, status.HTTP_201_CREATED)
+
+
+class ProductAPIView(viewsets.GenericViewSet,
+                     mixins.ListModelMixin,
+                     mixins.CreateModelMixin,
+                     mixins.UpdateModelMixin,
+                     mixins.RetrieveModelMixin,
+                     mixins.DestroyModelMixin):
+    queryset = Product.objects.all()
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return ProductDataSerializer
+        else:
+            return ProductSerializer
 
 
 class DecorationInspectionAPIView(viewsets.GenericViewSet,
