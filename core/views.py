@@ -160,7 +160,7 @@ class ProductAPIView(viewsets.GenericViewSet,
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
-            return ProductDataSerializer
+            return ProductSerializer
         else:
             return ProductSerializer
 
