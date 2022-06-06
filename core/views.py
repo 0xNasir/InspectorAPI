@@ -11,7 +11,8 @@ from core.serializer import UserSerializer, JWTObtainPairSerializer, MachineSeri
     ProductSerializer, DecorationInspectionSerializer, PackagingInspectionSerializer, CandleInspectionSerializer, \
     OrderCreateSerializer, OrderProductSerializer, ProductDecorationInspectionSerializer, \
     ProductPackagingInspectionSerializer, ProductCandleInspectionSerializer, ProductDataSerializer, \
-    OrderedProductSerializer
+    OrderedProductSerializer, CandleInspectionImageSerializer, PackagingInspectionImageSerializer, \
+    DecorationInspectionImageSerializer
 
 
 class RegisterAPIView(viewsets.GenericViewSet,
@@ -171,8 +172,20 @@ class DecorationInspectionAPIView(viewsets.GenericViewSet,
                                   mixins.RetrieveModelMixin,
                                   mixins.DestroyModelMixin):
     queryset = DecorationInspection.objects.all()
-    serializer_class = DecorationInspectionSerializer
     parser_classes = [MultiPartParser]
+
+    def get_serializer_class(self):
+        if self.action in ['image']:
+            return DecorationInspectionImageSerializer
+        return DecorationInspectionSerializer
+
+    @action(methods=['POST'], detail=True)
+    def image(self, request, pk):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.validated_data['decoration_inspection'] = self.get_object()
+        serializer.save()
+        return Response(serializer.data, status.HTTP_201_CREATED)
 
 
 class PackagingInspectionAPIView(viewsets.GenericViewSet,
@@ -182,8 +195,20 @@ class PackagingInspectionAPIView(viewsets.GenericViewSet,
                                  mixins.RetrieveModelMixin,
                                  mixins.DestroyModelMixin):
     queryset = PackagingInspection.objects.all()
-    serializer_class = PackagingInspectionSerializer
     parser_classes = [MultiPartParser]
+
+    def get_serializer_class(self):
+        if self.action in ['image']:
+            return PackagingInspectionImageSerializer
+        return PackagingInspectionSerializer
+
+    @action(methods=['POST'], detail=True)
+    def image(self, request, pk):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.validated_data['packaging_inspection'] = self.get_object()
+        serializer.save()
+        return Response(serializer.data, status.HTTP_201_CREATED)
 
 
 class CandleInspectionAPIView(viewsets.GenericViewSet,
@@ -193,5 +218,17 @@ class CandleInspectionAPIView(viewsets.GenericViewSet,
                               mixins.RetrieveModelMixin,
                               mixins.DestroyModelMixin):
     queryset = CandleInspection.objects.all()
-    serializer_class = CandleInspectionSerializer
     parser_classes = [MultiPartParser]
+
+    def get_serializer_class(self):
+        if self.action in ['image']:
+            return CandleInspectionImageSerializer
+        return CandleInspectionSerializer
+
+    @action(methods=['POST'], detail=True)
+    def image(self, request, pk):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.validated_data['candle_inspection'] = self.get_object()
+        serializer.save()
+        return Response(serializer.data, status.HTTP_201_CREATED)
